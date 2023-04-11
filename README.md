@@ -1,6 +1,8 @@
 # Project Name
 WeatherKitApp
 
+![名称未設定 001](https://user-images.githubusercontent.com/120383961/231159233-724ec436-e646-4c12-a535-c43008f8ea81.jpeg)
+
 # summary
 WeatherKit<br>
 ・Displays current weather, temperature, minimum and maximum temperatures.<br>
