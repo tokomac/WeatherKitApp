@@ -7,16 +7,11 @@
 
 import Foundation
 import CoreLocation
-import WeatherKit
 
 class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     
     @Published var city: String = ""
-    @Published var currentWeather: CurrentWeather?
-    @Published var dailyForecast: Forecast<DayWeather>?
-    @Published var hourlyForecast: Forecast<HourWeather>?
-    @Published var attributionInfo: WeatherAttribution?
-    
+    @Published var location: CLLocation?
     let manager = CLLocationManager()
     
     override init() {
@@ -27,40 +22,25 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         manager.distanceFilter = 100
         manager.startUpdatingLocation()
     }
-    
-    init(accuracy: CLLocationAccuracy) {
-        super.init()
-        self.manager.delegate = self
-        self.manager.requestWhenInUseAuthorization()
-        self.manager.desiredAccuracy = accuracy
-        self.manager.distanceFilter = 2
-        self.manager.startUpdatingLocation()
-    }
 
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         
-        guard let location = locations.last else { return }
+        guard let _location = locations.last else { return }
         
-        CLGeocoder().reverseGeocodeLocation(location, completionHandler: { [self](placemarks, error) in
-                    
-            if let error = error {
+        CLGeocoder().reverseGeocodeLocation(_location) { [self](_placemarks, _error) in
+
+            if let error = _error {
                 CommonFunc.shared.logput(error.localizedDescription)
                 return
             }
+            guard let _city = _placemarks?.first?.locality else { return }
 
-            if let _city = placemarks?.first?.locality {
-                if city != _city {
-                    city = _city
-                    Task.detached { @MainActor in
-                        self.attributionInfo =  await WeatherData.shared.attributionInfoData()
-                        let forcast = await WeatherData.shared.weatherForecast(userLocation: location)
-                        self.currentWeather = forcast.0
-                        self.hourlyForecast = forcast.1
-                        self.dailyForecast = forcast.2
-                    }
-                }
+            if _city != city {
+                city = _city
+                location = _location
+                CommonFunc.shared.logput(city)
             }
-        })
+        }
     }
 
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
