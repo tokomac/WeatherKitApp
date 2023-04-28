@@ -16,7 +16,7 @@ struct AttributionInfoCell: View {
     // MARK: - Initialization
     init(
         _colorScheme: ColorScheme,
-        _attributionInfo: WeatherAttribution? = nil
+        _attributionInfo: WeatherAttribution?
     ) {
         self.colorScheme = _colorScheme
         self.attributionInfo = _attributionInfo
@@ -28,13 +28,14 @@ struct AttributionInfoCell: View {
             Spacer()
             VStack {
                 if let attribution = attributionInfo {
-                    AsyncImage(url: colorScheme == .dark ? attribution.combinedMarkDarkURL : attribution.combinedMarkLightURL) { image in
-                        image
-                            .resizable()
-                            .scaledToFit()
-                            .frame(height: 20)
-                    } placeholder: {
-                        ProgressView()
+                    AsyncImage(url: colorScheme == .dark ? attribution.combinedMarkDarkURL : attribution.combinedMarkLightURL) { result in
+                        if let image = result.image {
+                            image.resizable().scaledToFit().frame(height: 20)
+                        } else if result.error != nil {
+                            Text(result.error!.localizedDescription)
+                        } else {
+                            ProgressView()
+                        }
                     }
                     Link("Other data sources", destination: attribution.legalPageURL)
                 }
