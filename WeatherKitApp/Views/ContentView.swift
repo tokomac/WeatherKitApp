@@ -6,33 +6,46 @@
 //
 
 import SwiftUI
-//import WeatherKit
+import WeatherKit
 
 struct ContentView: View {
     
     @Environment(\ .colorScheme)var colorScheme
-    @ObservedObject private var locationManager = LocationManager()
-    
-//    @State private var attributionInfo: WeatherAttribution?
+    @Environment(\.scenePhase) private var scenePhase
+    @ObservedObject private var weatherData = WeatherData()
+    @State private var attribution: WeatherAttribution?
 
     var body: some View {
         VStack {
             Section {
                 Spacer()
                 VStack(alignment: .center) {
-                    CurrentWeatherCell(_city: locationManager.city,
-                                       _currentWeather: locationManager.currentWeather,
-                                       _dailyForecast: locationManager.dailyForecast)
-                    HourlyForecastCell(_hourlyForecast: locationManager.hourlyForecast)
-                    DailyForecastCell(_dailyForecast: locationManager.dailyForecast)
+                    CurrentWeatherCell(_city: weatherData.locationManager.city,
+                                       _currentWeather: weatherData.currentWeather,
+                                       _dailyForecast: weatherData.dailyForecast)
+                    HourlyForecastCell(_hourlyForecast: weatherData.hourlyForecast)
+                    DailyForecastCell(_dailyForecast: weatherData.dailyForecast)
                 }
                 Spacer()
             }
             Spacer(minLength: 0)
             AttributionInfoCell(_colorScheme: colorScheme,
-                                _attributionInfo: locationManager.attributionInfo)
+                                _attributionInfo: attribution)
         }
         .edgesIgnoringSafeArea(.bottom)
+        .task {
+            Task {
+                attribution =  try await WeatherService.shared.attribution
+            }
+        }
+        .onChange(of: scenePhase) { phase in
+            if phase == .active {
+                weatherData.cityObserver?.cancel()
+                weatherData.getForcast()
+            } else if phase == .background {
+                weatherData.cityObserver?.cancel()
+            }
+        }
     }
 }
 
