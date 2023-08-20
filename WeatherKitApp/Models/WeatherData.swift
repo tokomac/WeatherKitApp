@@ -12,37 +12,42 @@ import Combine
 
 class WeatherData: ObservableObject {
     
-    static let shared = WeatherData()
     private let service = WeatherService.shared
-    var cityObserver: AnyCancellable?
+    private var cityObserver: AnyCancellable?
+    @Published var errorMessage: String = ""
     @Published var currentWeather: CurrentWeather?
     @Published var dailyForecast: Forecast<DayWeather>?
     @Published var hourlyForecast: Forecast<HourWeather>?
-    @ObservedObject var locationManager: LocationManager = LocationManager()
+    @ObservedObject var locationManager = LocationManager.shared
     
-    deinit {
-        cityObserver?.cancel()
-    }
-    
-    init() {
-        getForcast()
-    }
-    
-    func getForcast() {
+    func activate() {
         cityObserver = locationManager.$location.receive(on: DispatchQueue.main)
-            .sink { _loc in
-                Task.detached { @MainActor in
-                    if let _location = _loc {
-                        let forcast = await WeatherData.shared.weatherForecast(userLocation: _location)
-                        self.currentWeather = forcast.0
-                        self.hourlyForecast = forcast.1
-                        self.dailyForecast = forcast.2
+            .sink { _location in
+                Task {
+                    if let _location = _location {
+                        let _resulet = await self.weatherForecast(userLocation: _location)
+                        switch _resulet {
+                        case .success(let _forecast):
+                            self.currentWeather = _forecast.0
+                            self.hourlyForecast = _forecast.1
+                            self.dailyForecast = _forecast.2
+                            self.errorMessage = ""
+                        case .failure(let _error):
+                            switch _error {
+                            case .failure:
+                                self.errorMessage = "Failure."
+                            }
+                        }
                     }
                 }
             }
     }
- 
-    private func weatherForecast(userLocation: CLLocation) async -> (CurrentWeather?, Forecast<HourWeather>?, Forecast<DayWeather>?) {
+    
+    func deactivate() {
+        cityObserver?.cancel()
+    }
+    
+    private func weatherForecast(userLocation: CLLocation) async -> Result<(CurrentWeather?, Forecast<HourWeather>?, Forecast<DayWeather>?), WeatherError> {
         let _forecast = await Task.detached(priority: .userInitiated) {
             let forcast = try? await self.service.weather(
                 for: userLocation,
@@ -50,8 +55,12 @@ class WeatherData: ObservableObject {
             return forcast
         }.value
         if let forecast = _forecast {
-            return forecast
+            return .success(forecast)
         }
-        return (nil, nil, nil)
+        return .failure(.failure)
     }
+}
+
+enum WeatherError : Error {
+    case failure
 }
