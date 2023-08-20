@@ -12,25 +12,28 @@ struct ContentView: View {
     
     @Environment(\ .colorScheme)var colorScheme
     @Environment(\.scenePhase) private var scenePhase
-    @ObservedObject private var weatherData = WeatherData()
+    @StateObject private var weatherData = WeatherData()
     @State private var attribution: WeatherAttribution?
 
     var body: some View {
         VStack {
             Section {
                 Spacer()
+                if weatherData.errorMessage != "" {
+                    Text(weatherData.errorMessage)
+                        .font(.title2)
+                }
                 VStack(alignment: .center) {
-                    CurrentWeatherCell(_city: weatherData.locationManager.city,
-                                       _currentWeather: weatherData.currentWeather,
-                                       _dailyForecast: weatherData.dailyForecast)
-                    HourlyForecastCell(_hourlyForecast: weatherData.hourlyForecast)
-                    DailyForecastCell(_dailyForecast: weatherData.dailyForecast)
+                    CurrentWeatherCell(weatherData.locationManager.city,
+                                       weatherData.currentWeather,
+                                       weatherData.dailyForecast)
+                    HourlyForecastCell(weatherData.hourlyForecast)
+                    DailyForecastCell(weatherData.dailyForecast)
                 }
                 Spacer()
             }
             Spacer(minLength: 0)
-            AttributionInfoCell(_colorScheme: colorScheme,
-                                _attributionInfo: attribution)
+            AttributionInfoCell(colorScheme, attribution)
         }
         .edgesIgnoringSafeArea(.bottom)
         .task {
@@ -40,10 +43,12 @@ struct ContentView: View {
         }
         .onChange(of: scenePhase) { phase in
             if phase == .active {
-                weatherData.cityObserver?.cancel()
-                weatherData.getForcast()
+//                weatherData.deactivate()
+                weatherData.locationManager.activate()
+                weatherData.activate()
             } else if phase == .background {
-                weatherData.cityObserver?.cancel()
+                weatherData.locationManager.deactivate()
+                weatherData.deactivate()
             }
         }
     }
