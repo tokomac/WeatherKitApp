@@ -16,13 +16,13 @@ struct CurrentWeatherCell: View {
     
     // MARK: - Initialization
     init(
-        _city: String = "",
-        _currentWeather: CurrentWeather? = nil,
-        _dailyForecast: Forecast<DayWeather>? = nil
+        _ city: String = "",
+        _ currentWeather: CurrentWeather? = nil,
+        _ dailyForecast: Forecast<DayWeather>? = nil
     ) {
-        self.city = _city
-        self.currentWeather = _currentWeather
-        self.dailyForecast = _dailyForecast
+        self.city = city
+        self.currentWeather = currentWeather
+        self.dailyForecast = dailyForecast
     }
     
     // MARK: - View
