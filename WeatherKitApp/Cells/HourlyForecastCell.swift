@@ -14,9 +14,9 @@ struct HourlyForecastCell: View {
     
     // MARK: - Initialization
     init(
-        _hourlyForecast: Forecast<HourWeather>? = nil
+        _ hourlyForecast: Forecast<HourWeather>? = nil
     ) {
-        self.hourlyForecast = _hourlyForecast
+        self.hourlyForecast = hourlyForecast
     }
     
     // MARK: - View
