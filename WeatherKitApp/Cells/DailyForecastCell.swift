@@ -14,9 +14,9 @@ struct DailyForecastCell: View {
     
     // MARK: - Initialization
     init(
-        _dailyForecast: Forecast<DayWeather>? = nil
+        _ dailyForecast: Forecast<DayWeather>? = nil
     ) {
-        self.dailyForecast = _dailyForecast
+        self.dailyForecast = dailyForecast
     }
 
     // MARK: - View
