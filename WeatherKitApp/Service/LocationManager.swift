@@ -10,6 +10,8 @@ import CoreLocation
 
 class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     
+    static let shared = LocationManager()
+    
     @Published var city: String = ""
     @Published var location: CLLocation?
     let manager = CLLocationManager()
@@ -20,9 +22,17 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         self.manager.requestWhenInUseAuthorization()
         manager.desiredAccuracy = kCLLocationAccuracyHundredMeters
         manager.distanceFilter = 100
+//        manager.startUpdatingLocation()
+    }
+    
+    func activate() {
         manager.startUpdatingLocation()
     }
 
+    func deactivate() {
+        manager.stopUpdatingLocation()
+    }
+    
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         
         guard let _location = locations.last else { return }
