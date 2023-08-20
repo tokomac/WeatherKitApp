@@ -15,11 +15,11 @@ struct AttributionInfoCell: View {
     
     // MARK: - Initialization
     init(
-        _colorScheme: ColorScheme,
-        _attributionInfo: WeatherAttribution?
+        _ colorScheme: ColorScheme,
+        _ attributionInfo: WeatherAttribution?
     ) {
-        self.colorScheme = _colorScheme
-        self.attributionInfo = _attributionInfo
+        self.colorScheme = colorScheme
+        self.attributionInfo = attributionInfo
     }
     
     // MARK: - View
